@@ -34,6 +34,26 @@ except Exception as e:
     st.error(f"Erro ao abrir a planilha ou aba: {e}")
     st.stop()
 
+# --- Função para garantir cabeçalho ---
+
+colunas_ponto = [
+    "Entrada",
+    "Horário de saída",
+    "Horário de volta do almoço",
+    "Horário de saída não programada",
+    "Horário de volta da saída não programada",
+    "Saída"
+]
+
+def garantir_cabecalho(worksheet):
+    cabecalho_esperado = ["Nome", "Codigo", "Data"] + colunas_ponto
+    primeira_linha = worksheet.row_values(1)
+    if primeira_linha != cabecalho_esperado:
+        worksheet.update('A1', [cabecalho_esperado])
+        st.info("Cabeçalho criado na planilha!")
+
+garantir_cabecalho(aba)
+
 # --- Dados fixos dos colaboradores ---
 
 colaboradores = {
@@ -44,16 +64,6 @@ colaboradores = {
     "Valmir": 37
 }
 df_colaboradores = pd.DataFrame(list(colaboradores.items()), columns=["Nome", "Codigo"])
-
-# Colunas de horários na planilha, iniciando na coluna D (4)
-colunas_ponto = [
-    "Entrada",
-    "Horário de saída",
-    "Horário de volta do almoço",
-    "Horário de saída não programada",
-    "Horário de volta da saída não programada",
-    "Saída"
-]
 
 # --- Configuração da página Streamlit ---
 
