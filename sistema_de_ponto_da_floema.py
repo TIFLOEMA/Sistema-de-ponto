@@ -139,5 +139,5 @@ if not st.session_state.registrado:
         if codigo != 0:
             st.error("Código não encontrado. Tente novamente.")
 else:
-    if st.button("Registrar outro colaborador"):
+    if st.button("Novo registro"):
         st.session_state.registrado = False
