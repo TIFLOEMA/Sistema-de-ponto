@@ -16,7 +16,7 @@ scopes = [
 credenciais_dict = dict(st.secrets["gcp_credentials"])
 
 # Substitui as quebras de linha literais \n por quebras reais
-credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
+#credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
 
 credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
 cliente = gspread.authorize(credenciais)
