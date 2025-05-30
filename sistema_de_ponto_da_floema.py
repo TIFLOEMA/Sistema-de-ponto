@@ -11,8 +11,7 @@ escopo = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-credenciais_dict = st.secrets["gcp_credentials"]
-credenciais = ServiceAccountCredentials.from_json_keyfile_dict(credenciais_dict, escopo)
+credenciais = Credentials.from_service_account_info(st.secrets["gcp_credentials"], scopes=escopos)
 cliente = gspread.authorize(credenciais)
 
 # Abrir planilha e aba
