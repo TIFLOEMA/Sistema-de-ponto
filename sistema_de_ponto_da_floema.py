@@ -6,16 +6,18 @@ import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-escopo = [
+scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-credenciais_dict = st.secrets["gcp_credentials"]
-# Corrige a chave privada para quebras de linha reais
+# Faz uma cópia mutável do dicionário de credenciais
+credenciais_dict = dict(st.secrets["gcp_credentials"])
+
+# Substitui as quebras de linha literais \n por quebras reais
 credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
 
-credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=escopos)
+credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
 cliente = gspread.authorize(credenciais)
 
 # Abrir planilha e aba
