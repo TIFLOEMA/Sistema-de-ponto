@@ -7,16 +7,17 @@ from google.oauth2.service_account import Credentials
 
 # --- Configuração das credenciais e autorização ---
 
-SCOPES = [
+from oauth2client.service_account import ServiceAccountCredentials
+
+scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Pega as credenciais do secrets.toml
 credenciais_dict = dict(st.secrets["gcp_credentials"])
-
-# Corrige as quebras de linha na chave privada
 credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
+credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
+cliente = gspread.authorize(credenciais)
 
 # Cria as credenciais e cliente gspread
 try:
