@@ -21,7 +21,7 @@ cliente = gspread.authorize(credenciais)
 
 # Cria as credenciais e cliente gspread
 try:
-    credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=SCOPES)
+    credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
     cliente = gspread.authorize(credenciais)
 except Exception as e:
     st.error(f"Erro na autenticação das credenciais: {e}")
