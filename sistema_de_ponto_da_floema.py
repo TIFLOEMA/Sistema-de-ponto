@@ -21,6 +21,9 @@ credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n",
 credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
 cliente = gspread.authorize(credenciais)
 
+planilha = cliente.open_by_key("Registro_Ponto")
+aba = planilha.worksheet("Dados")
+
 # Dados dos colaboradores fixos (pode ser extraído da planilha se preferir)
 colaboradores = {
     "Fernando": 33,
