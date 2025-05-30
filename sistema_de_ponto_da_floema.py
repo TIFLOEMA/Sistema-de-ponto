@@ -19,7 +19,7 @@ escopo = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
-credenciais = ServiceAccountCredentials.from_json_keyfile_name("/content/sistemadeponto-f2ef52fe4ce4.json", escopo)
+credenciais = ServiceAccountCredentials.from_json_keyfile_name("sistemadeponto-f2ef52fe4ce4.json", escopo)
 cliente = gspread.authorize(credenciais)
 
 # Nome da planilha no Google Sheets
