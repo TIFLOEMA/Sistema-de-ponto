@@ -22,7 +22,7 @@ credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=sco
 cliente = gspread.authorize(credenciais)
 
 # Abrir planilha e aba
-planilha = cliente.open("Registro_Ponto")
+planilha = cliente.open_by_key("Registro_Ponto")
 aba = planilha.worksheet("Dados")
 
 # Dados dos colaboradores fixos (pode ser extraído da planilha se preferir)
