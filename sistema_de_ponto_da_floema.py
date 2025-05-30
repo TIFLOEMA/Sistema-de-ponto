@@ -3,29 +3,42 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import gspread
-import json
-from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 
-scopes = [
+# --- Configuração das credenciais e autorização ---
+
+SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Faz uma cópia mutável do dicionário de credenciais
+# Pega as credenciais do secrets.toml
 credenciais_dict = dict(st.secrets["gcp_credentials"])
 
-# Substitui as quebras de linha literais \n por quebras reais
+# Corrige as quebras de linha na chave privada
 credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
 
-credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=scopes)
-cliente = gspread.authorize(credenciais)
+# Cria as credenciais e cliente gspread
+try:
+    credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=SCOPES)
+    cliente = gspread.authorize(credenciais)
+except Exception as e:
+    st.error(f"Erro na autenticação das credenciais: {e}")
+    st.stop()
 
-planilha = cliente.open_by_key("1tae8vNgryWDpTSINk6RYJq9uAzc6M3s6oNQMtlImnXk")
-#planilha = cliente.open("Registro_Ponto")
-aba = planilha.worksheet("Dados")
+# --- Abre a planilha e worksheet ---
 
-# Dados dos colaboradores fixos (pode ser extraído da planilha se preferir)
+PLANILHA_KEY = "1tae8vNgryWDpTSINk6RYJq9uAzc6M3s6oNQMtlImnXk"
+
+try:
+    planilha = cliente.open_by_key(PLANILHA_KEY)
+    aba = planilha.worksheet("Dados")
+except Exception as e:
+    st.error(f"Erro ao abrir a planilha ou aba: {e}")
+    st.stop()
+
+# --- Dados dos colaboradores fixos ---
+
 colaboradores = {
     "Fernando": 33,
     "Gustavo": 44,
@@ -33,21 +46,22 @@ colaboradores = {
     "Eveline": 56,
     "Valmir": 37
 }
-
-# Criar DataFrame dos colaboradores
 Dados = pd.DataFrame(list(colaboradores.items()), columns=["Nome", "Codigo"])
 
-# Colunas que armazenam os horários
 colunas_ponto = [
-    "Entrada", "Horário de saída", "Horário de volta do almoço",
-    "Horário de saída não programada", "Horário de volta da saída não programada", "Saída"
+    "Entrada",
+    "Horário de saída",
+    "Horário de volta do almoço",
+    "Horário de saída não programada",
+    "Horário de volta da saída não programada",
+    "Saída"
 ]
 
-# Configurar página
+# --- Configuração da página ---
+
 st.set_page_config(page_title="Registro de Ponto", page_icon="🕒")
 st.title("🕒 Sistema de Registro de Ponto")
 
-# Estado da sessão para controlar registro
 if "registrado" not in st.session_state:
     st.session_state.registrado = False
 
@@ -72,45 +86,44 @@ if not st.session_state.registrado:
             ])
 
             if st.button("Registrar"):
-                agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
-                data = agora.date().strftime("%d/%m/%Y")
-                hora = agora.time().strftime("%H:%M:%S")
+                try:
+                    agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
+                    data = agora.strftime("%d/%m/%Y")
+                    hora = agora.strftime("%H:%M:%S")
 
-                campos = {
-                    "1": "Entrada",
-                    "2": "Horário de saída",
-                    "3": "Horário de volta do almoço",
-                    "4": "Horário de saída não programada",
-                    "5": "Horário de volta da saída não programada",
-                    "6": "Saída"
-                }
+                    campos = {
+                        "1": "Entrada",
+                        "2": "Horário de saída",
+                        "3": "Horário de volta do almoço",
+                        "4": "Horário de saída não programada",
+                        "5": "Horário de volta da saída não programada",
+                        "6": "Saída"
+                    }
+                    chave = opcao.split(" ")[0]
+                    campo_selecionado = campos[chave]
 
-                campo_selecionado = campos[opcao.split(" ")[0]]
+                    registros = aba.get_all_records()
 
-                # Buscar registros atuais na planilha
-                registros = aba.get_all_records()
+                    linha_para_atualizar = None
+                    for i, registro in enumerate(registros, start=2):
+                        if registro["Nome"] == nome and registro["Data"] == data:
+                            linha_para_atualizar = i
+                            break
 
-                # Procurar linha do colaborador na data atual
-                linha_para_atualizar = None
-                for i, registro in enumerate(registros, start=2):  # considerando que cabeçalho está na linha 1
-                    if registro["Nome"] == nome and registro["Data"] == data:
-                        linha_para_atualizar = i
-                        break
+                    if linha_para_atualizar:
+                        indice_coluna = colunas_ponto.index(campo_selecionado) + 4  # coluna D = 4
+                        aba.update_cell(linha_para_atualizar, indice_coluna, hora)
+                    else:
+                        nova_linha = [nome, codigo, data] + [""] * len(colunas_ponto)
+                        nova_linha[3 + colunas_ponto.index(campo_selecionado)] = hora
+                        aba.append_row(nova_linha, value_input_option="USER_ENTERED")
 
-                if linha_para_atualizar:
-                    # Atualizar célula específica
-                    # Colunas na planilha: A=Nome(1), B=Codigo(2), C=Data(3), colunas_ponto começam na D(4)
-                    indice_coluna = colunas_ponto.index(campo_selecionado) + 4
-                    aba.update_cell(linha_para_atualizar, indice_coluna, hora)
-                else:
-                    # Criar nova linha com nome, codigo, data e horários em branco
-                    nova_linha = [nome, codigo, data] + [""] * len(colunas_ponto)
-                    # Colocar a hora na coluna selecionada
-                    nova_linha[3 + colunas_ponto.index(campo_selecionado)] = hora
-                    aba.append_row(nova_linha, value_input_option="USER_ENTERED")
+                    st.success(f"{campo_selecionado} registrada com sucesso às {hora}!")
+                    st.session_state.registrado = True
 
-                st.success(f"{campo_selecionado} registrada com sucesso às {hora}!")
-                st.session_state.registrado = True
+                except Exception as e:
+                    st.error(f"Erro ao registrar ponto: {e}")
+
         else:
             st.warning("Por favor, contate o PCP para corrigir o código.")
     else:
@@ -119,4 +132,3 @@ if not st.session_state.registrado:
 else:
     if st.button("Registrar outro colaborador"):
         st.session_state.registrado = False
-
