@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
