@@ -11,7 +11,11 @@ escopo = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-credenciais = Credentials.from_service_account_info(st.secrets["gcp_credentials"], scopes=escopos)
+credenciais_dict = st.secrets["gcp_credentials"]
+# Corrige a chave privada para quebras de linha reais
+credenciais_dict["private_key"] = credenciais_dict["private_key"].replace("\\n", "\n")
+
+credenciais = Credentials.from_service_account_info(credenciais_dict, scopes=escopos)
 cliente = gspread.authorize(credenciais)
 
 # Abrir planilha e aba
