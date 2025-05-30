@@ -6,11 +6,7 @@ import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-# --- CONFIGURAÇÃO DA API via Streamlit Secrets ---
-
 escopo = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-# Carregar credenciais do secret no formato JSON
 credenciais_dict = json.loads(st.secrets["gcp_credentials"])
 credenciais = ServiceAccountCredentials.from_json_keyfile_dict(credenciais_dict, escopo)
 cliente = gspread.authorize(credenciais)
