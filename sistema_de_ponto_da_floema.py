@@ -63,7 +63,7 @@ except Exception as e:
 
 colunas_ponto = [
     "Entrada",
-    "Horário de saída",
+    "Horário de saída para o almoço",
     "Horário de volta do almoço",
     "Horário de saída não programada",
     "Horário de volta da saída não programada",
@@ -106,7 +106,7 @@ if not st.session_state.registrado:
         if confirma == "Sim":
             campos = {
                 "1": "Entrada",
-                "2": "Horário de saída",
+                "2": "Horário de saída para o almoço",
                 "3": "Horário de volta do almoço",
                 "4": "Horário de saída não programada",
                 "5": "Horário de volta da saída não programada",
