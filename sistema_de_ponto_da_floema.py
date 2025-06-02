@@ -5,6 +5,31 @@ from zoneinfo import ZoneInfo
 import gspread
 from google.oauth2.service_account import Credentials
 
+# --- Configuração da página Streamlit ---
+st.set_page_config(page_title="Registro de Ponto", page_icon="🕒")
+
+# CSS personalizado para aumentar fontes dos inputs, labels, botões e alertas
+st.markdown("""
+    <style>
+    /* Aumenta fonte dos labels */
+    .stTextInput label, .stNumberInput label, .stRadio label, .stSelectbox label {
+        font-size: 1.2rem !important;
+    }
+
+    /* Aumenta fonte dos botões */
+    button[kind="primary"] {
+        font-size: 1.1rem !important;
+    }
+
+    /* Aumenta fonte das mensagens de sucesso, erro, etc. */
+    .stAlert {
+        font-size: 1.1rem !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🕒 Sistema de Registro de Ponto")
+
 # --- Configuração das credenciais e autorização ---
 
 SCOPES = [
@@ -64,11 +89,6 @@ colaboradores = {
     "Valmir": 37
 }
 df_colaboradores = pd.DataFrame(list(colaboradores.items()), columns=["Nome", "Codigo"])
-
-# --- Configuração da página Streamlit ---
-
-st.set_page_config(page_title="Registro de Ponto", page_icon="🕒")
-st.title("🕒 Sistema de Registro de Ponto")
 
 if "registrado" not in st.session_state:
     st.session_state.registrado = False
