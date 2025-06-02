@@ -84,55 +84,56 @@ if not st.session_state.registrado:
         confirma = st.radio("Confirma seu nome?", ["Sim", "Não"])
 
         if confirma == "Sim":
-            opcao = st.selectbox("Escolha uma opção:", [
-                "1 - Entrada",
-                "2 - Saída para o almoço",
-                "3 - Volta para o almoço",
-                "4 - Saída não programada",
-                "5 - Volta da saída não programada",
-                "6 - Saída"
-            ])
+            campos = {
+                "1": "Entrada",
+                "2": "Horário de saída",
+                "3": "Horário de volta do almoço",
+                "4": "Horário de saída não programada",
+                "5": "Horário de volta da saída não programada",
+                "6": "Saída"
+            }
 
-            if st.button("Registrar"):
-                try:
-                    agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
-                    data = agora.strftime("%d/%m/%Y")
-                    hora = agora.strftime("%H:%M:%S")
+            agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
+            data = agora.strftime("%d/%m/%Y")
+            hora = agora.strftime("%H:%M:%S")
+            registros = aba.get_all_records()
 
-                    campos = {
-                        "1": "Entrada",
-                        "2": "Horário de saída",
-                        "3": "Horário de volta do almoço",
-                        "4": "Horário de saída não programada",
-                        "5": "Horário de volta da saída não programada",
-                        "6": "Saída"
-                    }
-                    chave = opcao.split(" ")[0]
-                    campo_selecionado = campos[chave]
+            registro_hoje = next((r for r in registros if r["Nome"] == nome and r["Data"] == data), None)
 
-                    registros = aba.get_all_records()
+            opcoes_disponiveis = []
+            for chave, campo in campos.items():
+                if not registro_hoje or not registro_hoje.get(campo):
+                    opcoes_disponiveis.append(f"{chave} - {campo}")
 
-                    linha_para_atualizar = None
-                    for i, registro in enumerate(registros, start=2):  # linha 2 é a primeira após cabeçalho
-                        if registro["Nome"] == nome and registro["Data"] == data:
-                            linha_para_atualizar = i
-                            break
+            if opcoes_disponiveis:
+                opcao = st.selectbox("Escolha uma opção:", opcoes_disponiveis)
 
-                    if linha_para_atualizar:
-                        # Coluna da planilha onde atualizar o horário (D=4, E=5, ...)
-                        indice_coluna = colunas_ponto.index(campo_selecionado) + 4
-                        aba.update_cell(linha_para_atualizar, indice_coluna, hora)
-                    else:
-                        nova_linha = [nome, codigo, data] + [""] * len(colunas_ponto)
-                        nova_linha[3 + colunas_ponto.index(campo_selecionado)] = hora
-                        aba.append_row(nova_linha, value_input_option="USER_ENTERED")
+                if st.button("Registrar"):
+                    try:
+                        chave = opcao.split(" ")[0]
+                        campo_selecionado = campos[chave]
 
-                    st.success(f"{campo_selecionado} registrada com sucesso às {hora}!")
-                    st.session_state.registrado = True
+                        linha_para_atualizar = None
+                        for i, registro in enumerate(registros, start=2):  # começa na linha 2
+                            if registro["Nome"] == nome and registro["Data"] == data:
+                                linha_para_atualizar = i
+                                break
 
-                except Exception as e:
-                    st.error(f"Erro ao registrar ponto: {e}")
+                        if linha_para_atualizar:
+                            indice_coluna = colunas_ponto.index(campo_selecionado) + 4
+                            aba.update_cell(linha_para_atualizar, indice_coluna, hora)
+                        else:
+                            nova_linha = [nome, codigo, data] + [""] * len(colunas_ponto)
+                            nova_linha[3 + colunas_ponto.index(campo_selecionado)] = hora
+                            aba.append_row(nova_linha, value_input_option="USER_ENTERED")
 
+                        st.success(f"{campo_selecionado} registrada com sucesso às {hora}!")
+                        st.session_state.registrado = True
+
+                    except Exception as e:
+                        st.error(f"Erro ao registrar ponto: {e}")
+            else:
+                st.info("✅ Todos os pontos já foram registrados para hoje.")
         else:
             st.warning("Por favor, contate o PCP para corrigir o código.")
     else:
