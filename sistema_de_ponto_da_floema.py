@@ -162,3 +162,5 @@ if not st.session_state.registrado:
 else:
     if st.button("Novo registro"):
         st.session_state.registrado = False
+        
+#Responsável: Fernando Filho (Analista de PCP - FLOEMA)
